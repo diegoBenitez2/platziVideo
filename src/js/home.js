@@ -109,20 +109,17 @@ fetch('https://randomuser.me/api/')
  //traer datos usando async-await
  //variable en mayuscula significa que nunca va a cambiar.
   const BASE_API = 'https://yts.lt/api/v2/';
- const actionlist = await getData(`${BASE_API}list_movies.json?genre=action`);
- const dramaList = await getData(`${BASE_API}list_movies.json?genre=drama`);
- const animationList = await getData(`${BASE_API}list_movies.json?genre=animation`);
-
-  console.log( 'ACCION',actionlist,'DRAMA',dramaList,'ANIMACION',animationList);
+// console.log( 'ACCION',actionlist,'DRAMA',dramaList,'ANIMACION',animationList);
   const $form = document.getElementById('form');
   const $featuringContainer = document.getElementById('featuring');
-
+//FUNCION PARA AGREGAR ATRIBUTOS AL ELEMENTO HTML
   function setAtrtributes($element,attributes){
     for (const attribute in attributes){
       $element.setAttribute(attribute,attributes[attribute]);
     }
 
   }
+  //EVENTO DE BUSQUEDA EN EL FORMULARIO DE BUSQUEDA
   $form.addEventListener('submit',async (event)=>{
     // la funcion preventDefault evita recargar la
     // pagina con cada busqueda del formulario.
@@ -151,16 +148,11 @@ fetch('https://randomuser.me/api/')
     const HTMLString = featuringTemplate(pelis[0]);
     //reemplazar el loader por la el template html
     $featuringContainer.innerHTML = HTMLString;
-
-    
-
-    console.log(peli);
+  console.log(peli);
     // debugger
   })
-  
-
-  // debugger
-   function videoItemTemplate(movie, category){
+  //FUNCION QUE CONTIENE EL TEMPLATE DE LAS CATEGORIAS
+ function videoItemTemplate(movie, category){
     return(
       `<div class="primaryPlaylistItem" data-id="${movie.id}"data-category=${category}>
           <div class="primaryPlaylistItem-image">
@@ -173,7 +165,7 @@ fetch('https://randomuser.me/api/')
 
     )
   }
-
+  //FUNCION QUE CONTIENE EL TEMPLATE DEL LA BUSQUEDA
   function featuringTemplate(peli){
     return(
       ` <div class="featuring">
@@ -186,7 +178,7 @@ fetch('https://randomuser.me/api/')
       </div>`
     )
   }
- 
+ //FUNCION PARA CREAR UN DOCUMENTO HTML PARA INCRUSTAR EL TEMPLATE
   function createTemplate(HTMLString){
     // crear un documento html nuevo dentro del DOM
     const html = document.implementation.createHTMLDocument();
@@ -196,9 +188,10 @@ fetch('https://randomuser.me/api/')
     
   }
   // console.log(videoItemTemplate('src/images/covers/bitcoin.jpg', 'BITCOIN'));
+  //FUNCION QUE DESEATA UN EVENTO DE CLICK TRAYENDO EL MODAL DEL LA PELICULA
 function addEventClick($element){
   $element.addEventListener('click',()=>{
-+ showModal();
++ showModal($element);
   })
 }
 //evento click con jquery
@@ -212,12 +205,17 @@ function addEventClick($element){
   //remover el gif del container antes de cargar las peliculas  
   $container.children[0].remove();
   list.forEach(movie=>{
-    // debugger
+   
     const HTMLString = videoItemTemplate(movie, category);
     const movieElement = createTemplate(HTMLString);
-    // debugger
+    
     //UTILZA LA FUNCION APPEND PARA INCLUIR HTML DENTRO DEL DOM
     $container.append(movieElement);
+    const image=  movieElement.querySelector('img');
+    image.addEventListener('load',(event)=>{
+    event.srcElement.classList.add('fadeIn');
+
+    })
     addEventClick(movieElement);
   })
    }
@@ -225,9 +223,15 @@ function addEventClick($element){
   const $actionContainer = document.querySelector('#action');
   const $dramaContainer = document.querySelector('#drama');
   const $animationContainer = document.querySelector('#animation');
-  renderMovieList(actionlist.data.movies, $actionContainer,'action');
-  renderMovieList(dramaList.data.movies,$dramaContainer,'drama');
-  renderMovieList(animationList.data.movies,$animationContainer,'animation');
+//CONSTANTE QUE TRAE LAS PETICIONES DE LA API MAS EL RENDER DE LAS PETICIONES
+  const{data: { movies: actionlist} }= await getData(`${BASE_API}list_movies.json?genre=action`);
+  renderMovieList(actionlist, $actionContainer,'action');
+
+  const {data: { movies: dramaList} } = await getData(`${BASE_API}list_movies.json?genre=drama`);
+  renderMovieList(dramaList,$dramaContainer,'drama');
+
+  const {data: { movies: animationList} } = await getData(`${BASE_API}list_movies.json?genre=animation`);
+  renderMovieList(animationList,$animationContainer,'animation');
 
   //SELECTORES
 
@@ -238,23 +242,59 @@ function addEventClick($element){
   const $overlay = document.getElementById('overlay');
   const $hideModal = document.getElementById('hide-modal');
 
-  const $modalImage = $modal.querySelector('img');
-  const $modalTitle = $modal.querySelector('h1');
-  const $modalDescription = $modal.querySelector('p');
- 
+    const $modalImage = $modal.querySelector('img');
+    const $modalTitle = $modal.querySelector('h1');
+    const $modalDescription = $modal.querySelector('p');
+    //FUNCION PARA ENCONTRAR PELICULA POR SU ID
+  function findById(list, id){
+    return list.find(movie=>
+    //busca y retorna a coincidencia
+    //parseando el id a tipo numerico
+     movie.id === parseInt(id, 10))
+  }
+  //FUNCION PARA ENCONTRAR PELICULA POR
+ function findMovie(id, category){
+   //con swicht se compara datos que ya conocemos
+   switch(category){
+     case 'action':{
+      return findById(actionlist, id)
+     }
+     case 'drama':{
+       return findById(dramaList, id)
+     }
+     case 'animation  ':{
+    return findById(animationList, id)
+     }
+     default:{
+       return alert('no se necontro coincidencias');
+     }
+   }
+  //  //la funcion find busca dentro de arrays
+  // actionlist.find(movie=>
+  //   //busca y retorna a coincidencia
+  //   //parseando el id a tipo numerico
+  //    movie.id === parseInt(id, 10))
+ }
   function showModal($element){
     $overlay.classList.add('active');
     $modal.style.animation ="modalIn .8s  forwards";
     //dataset agrupa todos los atributos de un elemento hmtl
-    const id = $element.dataset.id;
+    const id =  $element.dataset.id;
     const category = $element.dataset.category;
+    const data = findMovie(id,category);
+    // debugger
+    $modalTitle.textContent = data.title;
+    $modalImage.setAttribute('src',data.medium_cover_image);
+    $modalDescription.textContent = data.description_full;
+
   }
 
   $hideModal.addEventListener('click',hideModal);
  function hideModal(){
     $overlay.classList.remove('active');
     $modal.style.animation ="modalOut .8s  forwards";
-};
+};  
+
 
   
   //CREANDO TEMPLATES

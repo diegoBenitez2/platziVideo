@@ -8,14 +8,14 @@
 
 })()
 const BASE_API='url.com';
-const actionList = getData(`${BASE_API}/movies`);
-const dramaList = getData(`${BASE_API}/movies`);
-const animationList = getData(`${BASE_API}/movies`);
+const {data:{ movies: actionList } }= await getData(`${BASE_API}/movies`);
+const {data:{ movies: dramaList } }  = await getData(`${BASE_API}/movies`);
+const  {data:{ movies: animationList }}= await getData(`${BASE_API}/movies`);
 
 
-function itemTtemplateMovies(movie){
+function itemTtemplateMovies(movie,category){
   return(
-     `<div class="primaryPlaylistItem">
+     `<div class="primaryPlaylistItem" data-id="${movie.id}" category = ${category}>
           <div class="primaryPlaylistItem-image">
               <img src="${movie.medium_cover_image}">
           </div>
@@ -48,6 +48,9 @@ $form = document.querySelector('#form');
 $home = document.querySelector('.home');
 $closeModal = document.getElementById('close-buuton');
 $containerFeaturing= document.getElementById('featuring');
+const $modalImage = $modal.querySelector('img');
+  const $modalTitle = $modal.querySelector('h1');
+  const $modalDescription = $modal.querySelector('p');
 
 
 $form.addEventListener('submit',()=>{
@@ -74,10 +77,41 @@ function setAttributes($element, attributes){
   for(const atribute in attributes)
   $element.setAttributes(atribute,attributes[atribute]);
 }
+function findById(id,list){
+  return list.find(movie=>movie.id===id
+)
+}
+function findMovie(id, category){
+  
+  switch (category) {
+    case 'action':{
+      return findById(actionList,id);
+    }
+    case 'drama':{
+      return findById(dramaList,id);   
+      
+       }
+    case 'animation':{
+      return findById(animationList,id);   
+      
+       }
+    default:{
+      alert('no se encontro coincidencias');
+    }
+  }
 
-function showModal(){
+  
+}
+function showModal($element){
   $overlay.classList.add('active');
   $modal.style.animation = " modalIn 0.2s ease";
+  const id = $element.dataset.data.id;
+  const category = $element.dataset.category;
+  const data = findMovie(id, category);
+  $modalTitle.textContent = data.title; 
+  $modalDescription.textContent = data.description_full;
+  $modalImage.setAttributes('src',data.medium_cover_image);
+
 }
 
 function hideModal(){
@@ -87,7 +121,7 @@ function hideModal(){
 
 function addEventClick($element){
   $element.addEventListener('click',()=>{
-    showModal();
+    showModal($element);
   });
 }
 $closeModal.addEventListener('click',()=>{
@@ -99,20 +133,19 @@ function HtmlTemplate(HtmlString){
   return html.body.children[0];
 }
 
-function renderHtml(list, $container){
+function renderHtml(list, $container,category){
   $container.body.children[0].remove();
   list.forEach(movie => {
-  const HtmlString = itemTtemplateMovies(movie);
+  const HtmlString = itemTtemplateMovies(movie,category);
   const movieElement= HtmlTemplate(HtmlString);
-
   $container.append(movieElement);
   addEventMovie(movieElement);
 })
 }
 
-renderHtml(actionList.data.movies, $actionContainer);
-renderHtml(dramaList.data.movies, $dramaContainer);
-renderHtml(animationList.data.movies, $animationContainer);
+renderHtml(actionList, $actionContainer,'action');
+renderHtml(dramaList, $dramaContainer,'drama');
+renderHtml(animationList, $animationContainer,'animation');
 
 
 
