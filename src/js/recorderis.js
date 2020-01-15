@@ -3,12 +3,17 @@
 
     const response = await fetch(url);
     const data = await response.json();
-    return data;
+    if(data.data.movie_count>0){
+      return data
+    }
+    else{
+      throw error = new Error('no se necontro datos en la busqueda');
+    }
   }
 
 })()
 const BASE_API='url.com';
-const {data:{ movies: actionList } }= await getData(`${BASE_API}/movies`);
+const {data:{ movies: actionList } }  = await getData(`${BASE_API}/movies`);
 const {data:{ movies: dramaList } }  = await getData(`${BASE_API}/movies`);
 const  {data:{ movies: animationList }}= await getData(`${BASE_API}/movies`);
 
@@ -62,6 +67,7 @@ $form.addEventListener('submit',()=>{
   width: 50,
 })
 $containerFeaturing.append($loader);
+try{
 const data = FormData($form);
 const {
   data: {
@@ -71,6 +77,15 @@ const {
 const HtmlString = featuringTemplate(pelis[0]);
 $containerFeaturing.innerHTML= HtmlString;
 
+
+}
+catch(error){
+alert(error);
+$loader.remove();
+$home.classList.remove('search-active');
+
+}
+
 })
 
 function setAttributes($element, attributes){
@@ -78,7 +93,7 @@ function setAttributes($element, attributes){
   $element.setAttributes(atribute,attributes[atribute]);
 }
 function findById(id,list){
-  return list.find(movie=>movie.id===id
+  return list.find(movie=>movie.id==parseInt(id, 10)
 )
 }
 function findMovie(id, category){
@@ -139,6 +154,10 @@ function renderHtml(list, $container,category){
   const HtmlString = itemTtemplateMovies(movie,category);
   const movieElement= HtmlTemplate(HtmlString);
   $container.append(movieElement);
+  const image = movieElement.querySelector('img');
+  image.addEventListener('load',event =>{
+   event.srcElement.classList.add('fadeIn');
+  })
   addEventMovie(movieElement);
 })
 }

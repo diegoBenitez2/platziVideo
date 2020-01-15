@@ -104,8 +104,14 @@ fetch('https://randomuser.me/api/')
    async function getData(url){
     const response = await fetch(url);
     const data = await response.json();
-    return data;
- }
+      if(data.data.movie_count>0){
+        return data;
+      }
+      //sino hay pelis aqui continua
+      //se crea un error personlizado
+        throw error = new Error('No se encontro datos en la busqueda') ;
+          
+    }
  //traer datos usando async-await
  //variable en mayuscula significa que nunca va a cambiar.
   const BASE_API = 'https://yts.lt/api/v2/';
@@ -137,18 +143,27 @@ fetch('https://randomuser.me/api/')
     $featuringContainer.append($loader);
 
     const data = new FormData($form);
+    try{
+      
+      const {
+        data:{
+          movies:pelis
+        }
+      }= await getData(`${BASE_API}list_movies.json?limit=1&query_term=${data.get('name')}`);
+    
+      const HTMLString = featuringTemplate(pelis[0]);
+      //reemplazar el loader por la el template html
+      $featuringContainer.innerHTML = HTMLString;
+    console.log(peli);
+    }
+    catch(errori){
+      // debugger
+      alert(errori);
+      $loader.remove();
+      $home.classList.remove('search-active');
+    }
     //Desestructuracion de objetos
     //se desestructura el objeto buscando el key solicitado.
-    const {
-      data:{
-        movies:pelis
-      }
-    }= await getData(`${BASE_API}list_movies.json?limit=1&query_term=${data.get('name')}`);
-   
-    const HTMLString = featuringTemplate(pelis[0]);
-    //reemplazar el loader por la el template html
-    $featuringContainer.innerHTML = HTMLString;
-  console.log(peli);
     // debugger
   })
   //FUNCION QUE CONTIENE EL TEMPLATE DE LAS CATEGORIAS

@@ -202,9 +202,6 @@ body {
   transform: scale(1.1)
 }
 */
-.primaryPlaylistItem-image {
-}
-
 .primaryPlaylistItem img {
   width: 170px;
   height: 256px;
@@ -241,7 +238,7 @@ body {
 
 
 .fadeIn {
-  animation: 5000ms fadeIn;
+  animation: 1500ms fadeIn;
 }
  
 @keyframes fadeIn {
