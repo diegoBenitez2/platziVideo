@@ -156,9 +156,10 @@ fetch('https://randomuser.me/api/')
       $featuringContainer.innerHTML = HTMLString;
     console.log(peli);
     }
-    catch(errori){
+    catch(error){
+
       // debugger
-      alert(errori);
+      alert(error);
       $loader.remove();
       $home.classList.remove('search-active');
     }
@@ -169,6 +170,7 @@ fetch('https://randomuser.me/api/')
   //FUNCION QUE CONTIENE EL TEMPLATE DE LAS CATEGORIAS
  function videoItemTemplate(movie, category){
     return(
+      //traemos los datos de id y categori en cada template
       `<div class="primaryPlaylistItem" data-id="${movie.id}"data-category=${category}>
           <div class="primaryPlaylistItem-image">
               <img src="${movie.medium_cover_image}">
@@ -219,6 +221,7 @@ function addEventClick($element){
   // actionlist.data.movies
   //remover el gif del container antes de cargar las peliculas  
   $container.children[0].remove();
+  //CICLO PARA INICRUSTAR LOS DATOS DE LA PELICULAS CON forEach
   list.forEach(movie=>{
    
     const HTMLString = videoItemTemplate(movie, category);
@@ -226,6 +229,7 @@ function addEventClick($element){
     
     //UTILZA LA FUNCION APPEND PARA INCLUIR HTML DENTRO DEL DOM
     $container.append(movieElement);
+    //DAR ANIMACION ALAS IMAGENES DEL LAS PILICULAS 
     const image=  movieElement.querySelector('img');
     image.addEventListener('load',(event)=>{
     event.srcElement.classList.add('fadeIn');
@@ -234,18 +238,39 @@ function addEventClick($element){
     addEventClick(movieElement);
   })
    }
-
+   //FUNXION PARA ENCONTRAR Y/O ALMACENAR LO DATOS EN CACHE
+  async function cacheExist(category){
+    //guardamos la categoria en una const
+    const listName = `${category}list`
+    //guardamos el cache en una const
+    const cacheList = window.localStorage.getItem(listName);
+    //validar si hay datos: array, texto, numeros
+    if(cacheList){
+      //return los datos parseados a objetos
+      return JSON.parse(cacheList);
+    }
+    //SINO
+    //Se realiza la peticion segun la categoria
+    const {data:{movies: data }}= await getData(`${BASE_API}list_movies.json?genre=${category}`)
+    //se setean los datos de la consulta
+    window.localStorage.setItem(listName, JSON.stringify(data));
+    // se retorna los datos de la consulta
+    return data;
+  }
   const $actionContainer = document.querySelector('#action');
   const $dramaContainer = document.querySelector('#drama');
   const $animationContainer = document.querySelector('#animation');
 //CONSTANTE QUE TRAE LAS PETICIONES DE LA API MAS EL RENDER DE LAS PETICIONES
-  const{data: { movies: actionlist} }= await getData(`${BASE_API}list_movies.json?genre=action`);
+//crear una constante donde llamo el cache
+  const actionlist= await  cacheExist('action');
+  //alamacenar en cache los datos de las consultas
   renderMovieList(actionlist, $actionContainer,'action');
 
-  const {data: { movies: dramaList} } = await getData(`${BASE_API}list_movies.json?genre=drama`);
+  const dramalist= await cacheExist('drama');
   renderMovieList(dramaList,$dramaContainer,'drama');
 
-  const {data: { movies: animationList} } = await getData(`${BASE_API}list_movies.json?genre=animation`);
+
+  const  animationlist= await cacheExist('animation');
   renderMovieList(animationList,$animationContainer,'animation');
 
   //SELECTORES

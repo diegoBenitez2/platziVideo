@@ -12,10 +12,7 @@
   }
 
 })()
-const BASE_API='url.com';
-const {data:{ movies: actionList } }  = await getData(`${BASE_API}/movies`);
-const {data:{ movies: dramaList } }  = await getData(`${BASE_API}/movies`);
-const  {data:{ movies: animationList }}= await getData(`${BASE_API}/movies`);
+
 
 
 function itemTtemplateMovies(movie,category){
@@ -161,9 +158,22 @@ function renderHtml(list, $container,category){
   addEventMovie(movieElement);
 })
 }
-
+async function cacheExist(category){
+  const listName = `${category}list`
+  const cacheList = window.localStorage.getItem(listName);
+  if(cacheList){
+    return JSON.parse(cacheList);
+  }
+    const {data:{movies: data}} = await getData(`${BASE_API}/movies= ${category}`);
+    window.localStorage.setItem(JSON.stringify(data));
+    return data;
+}
+const BASE_API='url.com';
+const  actionList   = cacheExist('action');
 renderHtml(actionList, $actionContainer,'action');
+const dramaList = cacheExist('drama');
 renderHtml(dramaList, $dramaContainer,'drama');
+const  animationList = cacheExist('animation');
 renderHtml(animationList, $animationContainer,'animation');
 
 
